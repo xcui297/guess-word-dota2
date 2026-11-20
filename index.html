@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>猜词发牌</title>
+<meta name="description" content="每人抽一个词，别人的都看得到，只有自己的看不到。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+<style>
+:root {
+  --bg: #f6f1e7;
+  --surface: #fffdf8;
+  --text: #1f1b16;
+  --muted: #6b6257;
+  --border: #e2d9c8;
+  --accent: #d9480f;
+  --accent-soft: #fbe6da;
+  --accent-ink: #ffffff;
+  --me: #1c6fc0;
+  --me-bg: #e7f1fb;
+  --warn-bg: #fff3bf;
+  --warn-text: #5c4400;
+  --danger: #c92a2a;
+  --shadow: 0 1px 2px rgba(60, 40, 10, .06), 0 4px 14px rgba(60, 40, 10, .06);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17140f;
+    --surface: #221e18;
+    --text: #f2ece2;
+    --muted: #a59a8b;
+    --border: #3a342b;
+    --accent: #ff7a3d;
+    --accent-soft: #3a2418;
+    --accent-ink: #1a0f08;
+    --me: #7dbcf5;
+    --me-bg: #1b2a3a;
+    --warn-bg: #3d3210;
+    --warn-text: #f5dc8a;
+    --danger: #ff8787;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.55 -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+        "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+}
+h1 { font-size: 28px; line-height: 1.25; margin: 4px 0 6px; letter-spacing: .02em; }
+.sub { color: var(--muted); margin: 0 0 20px; }
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.field { display: block; font-weight: 650; margin-bottom: 8px; }
+.hint { color: var(--muted); font-size: 13px; font-weight: 400; }
+.center { text-align: center; }
+textarea {
+  width: 100%;
+  min-height: 132px;
+  resize: vertical;
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+textarea:focus-visible, button:focus-visible, summary:focus-visible, .chip:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+details { margin-top: 14px; }
+summary { cursor: pointer; color: var(--muted); font-size: 14px; padding: 4px 0; }
+details textarea { margin-top: 8px; min-height: 96px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; min-height: 40px;
+  border-radius: 999px; border: 1px solid var(--border);
+  background: var(--bg); cursor: pointer; user-select: none;
+}
+.chip input { accent-color: var(--accent); margin: 0; width: 16px; height: 16px; }
+.chip:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+details .chip { margin-top: 10px; }
+.btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit; font-weight: 650;
+  padding: 12px 16px; min-height: 48px;
+  border-radius: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn-block { width: 100%; }
+.btn-small { min-height: 40px; padding: 8px 14px; font-size: 14px; font-weight: 600; }
+.linkbtn {
+  background: none; border: none; color: var(--accent);
+  font: inherit; padding: 4px 2px; cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.error { color: var(--danger); min-height: 1.5em; margin: 4px 0 10px; font-size: 14px; }
+.banner {
+  background: var(--warn-bg); color: var(--warn-text);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px;
+}
+.howto p { color: var(--muted); font-size: 14px; margin: 6px 0 0; }
+
+/* 选身份 */
+.pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin: 6px 0 14px; }
+.pick .btn { font-size: 18px; min-height: 58px; overflow-wrap: anywhere; }
+
+/* 游戏 */
+.round { display: flex; justify-content: center; align-items: baseline; gap: 10px; margin: 6px 0 2px; }
+.round .label { color: var(--muted); font-size: 18px; }
+.round .num { font-size: 60px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.whoami { text-align: center; color: var(--muted); margin: 0 0 16px; }
+.whoami b { color: var(--text); }
+.hand { display: grid; gap: 10px; }
+.p {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.p .name { color: var(--muted); font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+.p .word { font-size: 26px; font-weight: 750; text-align: right; overflow-wrap: anywhere; }
+.p.me { border: 2px dashed var(--me); background: var(--me-bg); box-shadow: none; }
+.p.me .word { color: var(--me); letter-spacing: .1em; }
+.tag {
+  display: inline-block; font-size: 12px; line-height: 1.6;
+  padding: 0 8px; margin-left: 6px; border-radius: 999px;
+  background: var(--me); color: var(--surface); vertical-align: 1px;
+}
+.p.masked .word { color: var(--muted); letter-spacing: .15em; }
+.hand.compact { gap: 8px; }
+.hand.compact .p { padding: 9px 14px; }
+.hand.compact .p .word { font-size: 22px; }
+.p .word.mid, .hand.compact .p .word.mid { font-size: 22px; line-height: 1.25; }
+.p .word.long, .hand.compact .p .word.long { font-size: 19px; line-height: 1.25; }
+.deal .p { animation: pop .35s ease both; animation-delay: calc(var(--i) * 45ms); }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .deal .p { animation: none; } }
+.controls { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-top: 18px; }
+.controls .btn-primary { font-size: 18px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px; }
+.foot { margin-top: 26px; text-align: center; color: var(--muted); font-size: 13px; line-height: 1.8; }
+
+/* 弹层 */
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translate(-50%, 16px);
+  background: var(--text); color: var(--bg);
+  padding: 10px 18px; border-radius: 999px; font-size: 14px;
+  opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none;
+  max-width: calc(100vw - 32px);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+dialog {
+  border: none; border-radius: 18px; padding: 20px;
+  background: var(--surface); color: var(--text);
+  width: min(calc(100vw - 32px), 340px);
+}
+dialog::backdrop { background: rgba(0, 0, 0, .5); }
+.qrbox { background: #fff; color: #333; padding: 12px; border-radius: 12px; text-align: center; min-height: 80px; }
+.qrbox svg { display: block; width: 100%; height: auto; }
+dialog .hint { margin: 10px 0 14px; }
+</style>
+</head>
+<body>
+<main id="app"><noscript>这个页面需要开启 JavaScript。</noscript></main>
+
+<dialog id="qr">
+  <div class="qrbox"></div>
+  <p class="hint center">扫码加入（会带上当前局数）</p>
+  <button class="btn btn-block" data-act="closeqr">关闭</button>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- WORD-BANKS:BEGIN 由 update_words.py 自动生成，别手动改 -->
+<script id="word-banks" type="application/json">
+[
+{"id": "dota-heroes", "name": "Dota 2 英雄", "on": true, "list": ["Abaddon", "Alchemist", "Ancient Apparition", "Anti-Mage", "Arc Warden", "Axe", "Bane", "Batrider", "Beastmaster", "Bloodseeker", "Bounty Hunter", "Brewmaster", "Bristleback", "Broodmother", "Centaur Warrunner", "Chaos Knight", "Chen", "Clinkz", "Clockwerk", "Crystal Maiden", "Dark Seer", "Dark Willow", "Dawnbreaker", "Dazzle", "Death Prophet", "Disruptor", "Doom", "Dragon Knight", "Drow Ranger", "Earth Spirit", "Earthshaker", "Elder Titan", "Ember Spirit", "Enchantress", "Enigma", "Faceless Void", "Grimstroke", "Gyrocopter", "Hoodwink", "Huskar", "Invoker", "Io", "Jakiro", "Juggernaut", "Keeper of the Light", "Kez", "Kunkka", "Largo", "Legion Commander", "Leshrac", "Lich", "Lifestealer", "Lina", "Lion", "Lone Druid", "Luna", "Lycan", "Magnus", "Marci", "Mars", "Medusa", "Meepo", "Mirana", "Monkey King", "Morphling", "Muerta", "Naga Siren", "Nature's Prophet", "Necrophos", "Night Stalker", "Nyx Assassin", "Ogre Magi", "Omniknight", "Oracle", "Outworld Destroyer", "Pangolier", "Phantom Assassin", "Phantom Lancer", "Phoenix", "Primal Beast", "Puck", "Pudge", "Pugna", "Queen of Pain", "Razor", "Riki", "Ringmaster", "Rubick", "Sand King", "Shadow Demon", "Shadow Fiend", "Shadow Shaman", "Silencer", "Skywrath Mage", "Slardar", "Slark", "Snapfire", "Sniper", "Spectre", "Spirit Breaker", "Storm Spirit", "Sven", "Techies", "Templar Assassin", "Terrorblade", "Tidehunter", "Timbersaw", "Tinker", "Tiny", "Treant Protector", "Troll Warlord", "Tusk", "Underlord", "Undying", "Ursa", "Vengeful Spirit", "Venomancer", "Viper", "Visage", "Void Spirit", "Warlock", "Weaver", "Windranger", "Winter Wyvern", "Witch Doctor", "Wraith King", "Zeus"]},
+{"id": "dota-players", "name": "Dota 2 玩家", "on": false, "list": ["夹克林", "利奥", "维他命水", "男神", "奥男", "carrot (25元)", "刘培强", "火鸡", "Favilla", "铃兰花开", "suestring", "Phoebe", "小小木", "小蘑菇", "叉叉", "蛋炒饭", "脏脏", "年糕", "丽丽", "绵羊", "家明", "Boush", "小松鼠（女陪）", "McFlurry", "BabyBeauty", "Tgg"]},
+{"id": "animals", "name": "动物", "on": false, "list": ["熊猫", "长颈鹿", "企鹅", "袋鼠", "章鱼", "蜗牛", "刺猬", "骆驼", "海豚", "鳄鱼", "孔雀", "蝙蝠", "仓鼠", "树懒", "考拉", "河马", "斑马", "猫头鹰", "火烈鸟", "变色龙", "蚂蚁", "蜜蜂", "蝴蝶", "乌龟", "鲨鱼", "狐狸", "狼", "老虎", "狮子", "大象", "兔子", "松鼠", "鹦鹉", "金鱼", "青蛙", "螃蟹", "海星", "水母", "蚊子", "恐龙", "羊驼", "浣熊", "犀牛", "猩猩", "鸵鸟", "海豹", "北极熊", "蟑螂", "萤火虫", "啄木鸟"]},
+{"id": "food", "name": "食物", "on": false, "list": ["火锅", "小笼包", "饺子", "煎饼果子", "臭豆腐", "麻辣烫", "烤鸭", "粽子", "月饼", "汤圆", "冰糖葫芦", "螺蛳粉", "肉夹馍", "披萨", "汉堡", "寿司", "薯条", "炸鸡", "冰淇淋", "巧克力", "西瓜", "榴莲", "菠萝", "柠檬", "香蕉", "草莓", "葡萄", "芒果", "椰子", "奶茶", "咖啡", "可乐", "豆浆", "油条", "包子", "方便面", "爆米花", "棉花糖", "蛋糕", "甜甜圈", "牛排", "皮蛋", "辣条", "酸奶", "鸡蛋", "年糕", "凉皮", "烤红薯", "小龙虾", "毛血旺"]},
+{"id": "items", "name": "日常物品", "on": false, "list": ["牙刷", "雨伞", "眼镜", "手机", "耳机", "钥匙", "枕头", "拖鞋", "镜子", "筷子", "剪刀", "吹风机", "冰箱", "洗衣机", "闹钟", "充电宝", "遥控器", "口罩", "钱包", "书包", "台灯", "马桶", "蜡烛", "气球", "风筝", "望远镜", "指南针", "扫把", "垃圾桶", "保温杯", "晾衣架", "指甲刀", "创可贴", "体温计", "电风扇", "空调", "沙发", "微波炉", "打火机", "胶带", "订书机", "橡皮", "键盘", "鼠标", "相机", "行李箱", "自行车", "滑板", "帐篷", "地图"]},
+{"id": "jobs", "name": "职业身份", "on": false, "list": ["医生", "护士", "老师", "警察", "消防员", "厨师", "快递员", "外卖员", "程序员", "律师", "宇航员", "飞行员", "空乘", "魔术师", "小丑", "理发师", "农民", "渔夫", "出租车司机", "保安", "记者", "主持人", "画家", "歌手", "演员", "导演", "摄影师", "侦探", "法官", "牙医", "兽医", "科学家", "建筑师", "设计师", "会计", "网红", "主播", "运动员", "教练", "裁判", "服务员", "收银员", "邮递员", "船长", "士兵", "海盗", "忍者", "骑士", "国王", "和尚"]},
+{"id": "places", "name": "地点", "on": false, "list": ["医院", "学校", "机场", "火车站", "图书馆", "电影院", "动物园", "游乐园", "超市", "健身房", "游泳池", "海滩", "沙漠", "森林", "火山", "南极", "月球", "监狱", "教堂", "寺庙", "博物馆", "银行", "加油站", "理发店", "网吧", "夜市", "菜市场", "厕所", "电梯", "地铁", "厨房", "卧室", "阳台", "屋顶", "山顶", "瀑布", "岛屿", "城堡", "金字塔", "长城", "故宫", "埃菲尔铁塔", "自由女神像", "太空站", "潜水艇", "马戏团", "婚礼现场", "考场", "停车场", "幼儿园"]},
+{"id": "activities", "name": "活动（较难）", "on": false, "list": ["跳绳", "滑雪", "冲浪", "钓鱼", "拔河", "放风筝", "打麻将", "斗地主", "广场舞", "瑜伽", "拳击", "跳水", "举重", "射箭", "攀岩", "蹦极", "跳伞", "露营", "野餐", "蹦迪", "唱K", "打篮球", "踢足球", "打乒乓球", "打羽毛球", "打网球", "高尔夫", "马拉松", "骑马", "滑冰", "游泳", "下棋", "太极拳", "相亲", "搬家", "考试", "面试", "加班", "遛狗", "自拍", "直播", "午睡", "打喷嚏", "打哈欠", "跳舞", "做饭", "洗碗", "化妆", "剪头发", "刷牙"]}
+]
+</script>
+<!-- WORD-BANKS:END -->
+<script>
+'use strict';
+
+/* ================================================================
+ * 词库嵌在上面 id="word-banks" 的 <script> 里，由 update_words.py 从 words/ 文件夹生成。
+ * 要改词：改 words/ 里的 txt，运行 python3 update_words.py，再上传 index.html。
+ * ================================================================ */
+const CATS = JSON.parse(document.getElementById('word-banks').textContent);
+const defaultCats = () => CATS.filter(c => c.on).map(c => c.id);
+
+const SPECTATOR = '\u0000spectator';
+const QR_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+const $app = document.getElementById('app');
+let room = null;      // { seed, players, cats, custom, check, words }
+let round = 1;
+let prefill = null;   // 「改名单」时带回建房页的旧设置
+let busy = false;
+
+/* ---------- 可复现的随机数：同一个种子在任何设备上算出同一串数 ---------- */
+function cyrb128(str) {
+  let h1 = 1779033703, h2 = 3144134277, h3 = 1013904242, h4 = 2773480762;
+  for (let i = 0, k; i < str.length; i++) {
+    k = str.charCodeAt(i);
+    h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+    h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+    h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+    h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+  }
+  h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+  h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+  h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+  h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+  h1 ^= (h2 ^ h3 ^ h4); h2 ^= h1; h3 ^= h1; h4 ^= h1;
+  return [h1 >>> 0, h2 >>> 0, h3 >>> 0, h4 >>> 0];
+}
+function sfc32(a, b, c, d) {
+  return function () {
+    a |= 0; b |= 0; c |= 0; d |= 0;
+    const t = (a + b | 0) + d | 0;
+    d = d + 1 | 0;
+    a = b ^ b >>> 9;
+    b = c + (c << 3) | 0;
+    c = (c << 21 | c >>> 11);
+    c = c + t | 0;
+    return (t >>> 0) / 4294967296;
+  };
+}
+function shuffle(arr, seedStr) {
+  const h = cyrb128(seedStr), rnd = sfc32(h[0], h[1], h[2], h[3]);
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function checksum(words) {
+  return cyrb128(words.join('\n'))[0].toString(16).padStart(8, '0').slice(0, 4);
+}
+// 用种子把整个词库洗一遍，第 r 局取第 r 段：词库用完之前不会抽到重复的词。
+function deal(words, seed, n, r) {
+  const per = Math.floor(words.length / n);
+  const cycle = Math.floor((r - 1) / per);
+  const idx = (r - 1) % per;
+  return shuffle(words, seed + '#' + cycle).slice(idx * n, idx * n + n);
+}
+function randomSeed() {
+  const abc = 'abcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from(crypto.getRandomValues(new Uint8Array(8)), b => abc[b % abc.length]).join('');
+}
+
+/* ---------- 词库与链接 ---------- */
+function wordList(cats, custom) {
+  const seen = new Set(), out = [];
+  const add = w => { if (!seen.has(w)) { seen.add(w); out.push(w); } };
+  for (const c of CATS) if (cats.includes(c.id)) c.list.forEach(add);
+  custom.forEach(add);
+  return out;
+}
+function splitList(text) {
+  return text.split(/[\n,，、;；]+/).map(s => s.trim()).filter(Boolean);
+}
+function encodeWords(arr) {
+  let bin = '';
+  new TextEncoder().encode(arr.join('\n')).forEach(b => { bin += String.fromCharCode(b); });
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function decodeWords(s) {
+  try {
+    s = s.replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    const bytes = Uint8Array.from(atob(s), ch => ch.charCodeAt(0));
+    return splitList(new TextDecoder().decode(bytes));
+  } catch (e) { return []; }
+}
+function parseHash() {
+  const h = location.hash.replace(/^#/, '');
+  if (!h) return null;
+  const q = new URLSearchParams(h);
+  const seed = q.get('s');
+  const players = (q.get('p') || '').split(',').map(s => s.trim()).filter(Boolean);
+  if (!seed || players.length < 2) return null;
+  const c = q.get('c');
+  const cats = c == null ? defaultCats() : c.split(',').filter(Boolean);
+  const custom = q.get('w') ? decodeWords(q.get('w')) : [];
+  return {
+    seed, players, cats, custom,
+    check: q.get('k') || '',
+    round: Math.max(1, parseInt(q.get('r'), 10) || 1),
+  };
+}
+function buildHash(r, rd) {
+  const q = new URLSearchParams();
+  q.set('s', r.seed);
+  q.set('p', r.players.join(','));
+  q.set('c', r.cats.join(','));
+  if (r.custom.length) q.set('w', encodeWords(r.custom));
+  q.set('k', r.check);
+  q.set('r', String(rd));
+  return '#' + q.toString();
+}
+
+/* ---------- 本机存储（只存「我是谁」和遮挡开关） ---------- */
+const mem = {};
+function load(k) { try { const v = localStorage.getItem(k); return v ?? mem[k] ?? null; } catch (e) { return mem[k] ?? null; } }
+function save(k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch (e) {} }
+function forget(k) { delete mem[k]; try { localStorage.removeItem(k); } catch (e) {} }
+const meKey = () => 'guess:me:' + room.seed;
+function currentMe() {
+  const me = load(meKey());
+  return (me === SPECTATOR || room.players.includes(me)) ? me : null;
+}
+
+/* ---------- 页面 ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, ch =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+function route() {
+  const parsed = parseHash();
+  if (!parsed) { room = null; renderSetup(); return; }
+  room = {
+    ...parsed,
+    words: wordList(parsed.cats, parsed.custom),
+    missing: parsed.cats.filter(id => !CATS.some(c => c.id === id)),
+  };
+  round = parsed.round;
+  if (currentMe() === null) renderPick();
+  else renderGame(true);
+}
+
+function renderSetup() {
+  const pf = prefill || {};
+  const catsOn = pf.cats != null ? pf.cats : defaultCats();
+  document.title = '猜词发牌';
+  $app.innerHTML = `
+    <h1>猜词发牌</h1>
+    <p class="sub">每人抽一个词：别人的都看得到，只有自己的看不到。</p>
+    ${pf.players ? '<div class="banner">改完会生成一个新链接，需要重新发给大家。</div>' : ''}
+    <section class="panel">
+      <label class="field" for="players">玩家 <span class="hint">每行一个名字，或用逗号隔开</span></label>
+      <textarea id="players" placeholder="小明&#10;小红&#10;阿强&#10;Lily">${esc((pf.players || []).join('\n'))}</textarea>
+    </section>
+    <section class="panel">
+      <div class="field">词库</div>
+      <div class="chips">
+        ${CATS.map(c => `
+          <label class="chip"><input type="checkbox" name="cat" value="${esc(c.id)}" ${catsOn.includes(c.id) ? 'checked' : ''}>
+          ${esc(c.name)} <span class="hint">${c.list.length}</span></label>`).join('')}
+      </div>
+      <details ${pf.custom && pf.custom.length ? 'open' : ''}>
+        <summary>加自定义词</summary>
+        <textarea id="custom" placeholder="每行一个，或用逗号隔开">${esc((pf.custom || []).join('\n'))}</textarea>
+        <label class="chip"><input type="checkbox" id="only" ${pf.only ? 'checked' : ''}> 只用自定义词</label>
+        <p class="hint">自定义词会写进链接里，词越多链接越长。想长期用的词，加进 words 文件夹里的词库文件更方便。</p>
+      </details>
+    </section>
+    <p class="error" id="err" role="alert"></p>
+    <button class="btn btn-primary btn-block" data-act="create">创建房间</button>
+    <details class="howto">
+      <summary>为什么不需要服务器？</summary>
+      <p>链接里带着一个随机种子。每台设备用同一个种子和同一个局数去洗同一个词库，算出来的牌就完全一样，所以设备之间不用通信。</p>
+      <p>「下一局」由每个人在自己设备上点。屏幕上的局数一样，就是同一副牌。</p>
+    </details>`;
+}
+
+function createRoom() {
+  const err = document.getElementById('err');
+  const players = splitList(document.getElementById('players').value);
+  const dup = players.find((p, i) => players.indexOf(p) !== i);
+  const custom = splitList(document.getElementById('custom').value);
+  const only = document.getElementById('only').checked;
+  const cats = only ? [] : [...document.querySelectorAll('input[name=cat]:checked')].map(i => i.value);
+  const words = wordList(cats, custom);
+  if (players.length < 2) return void (err.textContent = '至少填两个玩家。');
+  if (dup) return void (err.textContent = `「${dup}」重名了，名字要互不相同。`);
+  if (only && !custom.length) return void (err.textContent = '勾了「只用自定义词」，但还没填自定义词。');
+  if (words.length < players.length) {
+    return void (err.textContent = `词库只有 ${words.length} 个词，不够 ${players.length} 个人分。多勾几个类别吧。`);
+  }
+  prefill = null;
+  const r = { seed: randomSeed(), players, cats, custom, check: checksum(words) };
+  location.hash = buildHash(r, 1);
+}
+
+function shareTools() {
+  return `
+    <button class="btn btn-small" data-act="copy">复制链接</button>
+    ${navigator.share ? '<button class="btn btn-small" data-act="share">分享…</button>' : ''}
+    <button class="btn btn-small" data-act="qr">二维码</button>`;
+}
+
+function renderPick() {
+  document.title = '你是谁？ · 猜词发牌';
+  $app.innerHTML = `
+    <h1>你是谁？</h1>
+    <p class="sub">选你自己的名字。之后你能看到其他人的词，你自己的会被藏起来。</p>
+    <div class="pick">
+      ${room.players.map((p, i) => `<button class="btn" data-act="pick" data-i="${i}">${esc(p)}</button>`).join('')}
+    </div>
+    <p class="center"><button class="linkbtn" data-act="spectate">我不玩，只当主持人（能看到所有词）</button></p>
+    <section class="panel" style="margin-top:18px">
+      <div class="field">邀请朋友</div>
+      <p class="hint" style="margin:0">把这个页面的链接发给大家，每人打开后选自己的名字。</p>
+      <div class="tools">${shareTools()}</div>
+    </section>`;
+}
+
+function renderGame(animate) {
+  const me = currentMe();
+  if (me === null) return renderPick();
+  const n = room.players.length;
+  document.title = `第 ${round} 局 · 猜词发牌`;
+  if (room.words.length < n) {
+    $app.innerHTML = `
+      <div class="banner">这个房间的词库只有 ${room.words.length} 个词，不够 ${n} 个人分。</div>
+      <button class="btn btn-primary btn-block" data-act="edit">改名单 / 开新房间</button>`;
+    return;
+  }
+  const hand = deal(room.words, room.seed, n, round);
+  const hidden = load('guess:hide') === '1';
+  const localCheck = checksum(room.words);
+  const mismatch = room.check && room.check !== localCheck;
+  const spectator = me === SPECTATOR;
+  $app.innerHTML = `
+    ${room.missing.length ? `<div class="banner">⚠️ 这个房间用到的词库「${esc(room.missing.join('、'))}」在你的页面里找不到
+      （可能是词库改了名）。发到的词会和别人对不上，请让房主开个新房间。</div>`
+    : mismatch ? `<div class="banner">⚠️ 你的词库版本和房主的不一样（#${esc(localCheck)} ≠ #${esc(room.check)}），
+      发到的词会和别人对不上。请刷新页面；还不行就让房主重新发链接。</div>` : ''}
+    <div class="round"><span class="label">第</span><span class="num">${round}</span><span class="label">局</span></div>
+    <p class="whoami">${spectator ? '主持人模式：能看到所有词' : `你是 <b>${esc(me)}</b>`}
+      · <button class="linkbtn" data-act="switch">换身份</button></p>
+    <div class="hand ${n > 6 ? 'compact' : ''} ${animate ? 'deal' : ''}">
+      ${room.players.map((p, i) => {
+        const isMe = p === me;
+        const word = isMe ? '？？？' : hidden ? '••••' : hand[i];
+        return `<div class="p ${isMe ? 'me' : ''} ${hidden && !isMe ? 'masked' : ''}" style="--i:${i}">
+          <span class="name">${esc(p)}${isMe ? '<span class="tag">你</span>' : ''}</span>
+          <span class="word ${word.length > 15 ? 'long' : word.length > 9 ? 'mid' : ''}">${esc(word)}</span></div>`;
+      }).join('')}
+    </div>
+    <div class="controls">
+      <button class="btn" data-act="prev" ${round <= 1 ? 'disabled' : ''}>← 上一局</button>
+      <button class="btn btn-primary" data-act="next">下一局 →</button>
+    </div>
+    <p class="hint center">每个人各自点「下一局」，局数一样就是同一副牌。</p>
+    <div class="tools">
+      <button class="btn btn-small" data-act="hide">${hidden ? '显示别人的词' : '遮住别人的词'}</button>
+      ${shareTools()}
+    </div>
+    <footer class="foot">
+      房间 ${esc(room.seed)} · 词库 #${esc(localCheck)} · ${room.words.length} 个词<br>
+      <button class="linkbtn" data-act="edit">改名单 / 开新房间</button>
+    </footer>`;
+}
+
+function setRound(r) {
+  if (busy) return;           // 防止手滑连点导致局数和别人对不上
+  busy = true;
+  setTimeout(() => { busy = false; }, 700);
+  round = Math.max(1, r);
+  history.replaceState(null, '', buildHash(room, round));
+  renderGame(true);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ---------- 分享 ---------- */
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+async function copyLink() {
+  try { await navigator.clipboard.writeText(location.href); toast('链接已复制，发到群里吧'); }
+  catch (e) { window.prompt('复制这个链接发给大家：', location.href); }
+}
+async function shareLink() {
+  try { await navigator.share({ title: '猜词发牌', text: '来玩猜词！打开后选你的名字', url: location.href }); }
+  catch (e) { if (e.name !== 'AbortError') copyLink(); }
+}
+let qrLoading = null;
+function loadQR() {
+  if (window.qrcode) return Promise.resolve();
+  if (!qrLoading) {
+    qrLoading = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = QR_LIB;
+      s.onload = resolve;
+      s.onerror = () => { qrLoading = null; reject(new Error('load')); };
+      document.head.appendChild(s);
+    });
+  }
+  return qrLoading;
+}
+async function showQR() {
+  const dlg = document.getElementById('qr');
+  const box = dlg.querySelector('.qrbox');
+  box.textContent = '生成中…';
+  dlg.showModal();
+  try { await loadQR(); }
+  catch (e) { box.textContent = '二维码组件加载失败（需要联网），请用「复制链接」。'; return; }
+  try {
+    const q = qrcode(0, 'L');
+    q.addData(location.href);
+    q.make();
+    box.innerHTML = q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  } catch (e) {
+    box.textContent = '链接太长，生成不了二维码（通常是自定义词太多），请用「复制链接」。';
+  }
+}
+
+/* ---------- 事件 ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  switch (b.dataset.act) {
+    case 'create': createRoom(); break;
+    case 'pick': save(meKey(), room.players[+b.dataset.i]); renderGame(true); break;
+    case 'spectate':
+      if (confirm('主持人能看到所有人的词，包括你自己的。确定不参与吗？')) { save(meKey(), SPECTATOR); renderGame(true); }
+      break;
+    case 'switch':
+      if (currentMe() === SPECTATOR || confirm('换身份时可能会看到你自己的词。确定要换吗？')) { forget(meKey()); renderPick(); }
+      break;
+    case 'prev': setRound(round - 1); break;
+    case 'next': setRound(round + 1); break;
+    case 'hide': save('guess:hide', load('guess:hide') === '1' ? '0' : '1'); renderGame(false); break;
+    case 'copy': copyLink(); break;
+    case 'share': shareLink(); break;
+    case 'qr': showQR(); break;
+    case 'closeqr': document.getElementById('qr').close(); break;
+    case 'edit':
+      prefill = { players: room.players, cats: room.cats, custom: room.custom, only: !room.cats.length };
+      location.hash = '';
+      break;
+  }
+});
+document.getElementById('qr').addEventListener('click', e => {
+  if (e.target.id === 'qr') e.target.close();   // 点遮罩关闭
+});
+window.addEventListener('hashchange', route);
+route();
+</script>
+</body>
+</html>
