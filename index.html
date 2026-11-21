@@ -98,6 +98,10 @@ details textarea { margin-top: 8px; min-height: 96px; }
 .chip input { accent-color: var(--accent); margin: 0; width: 16px; height: 16px; }
 .chip:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 details .chip { margin-top: 10px; }
+.custom-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 10px; }
+.filebtn { display: inline-flex; align-items: center; position: relative; }
+.filebtn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
 .btn {
   appearance: none;
   border: 1px solid var(--border);
@@ -203,7 +207,8 @@ dialog .hint { margin: 10px 0 14px; }
 <script id="word-banks" type="application/json">
 [
 {"id": "dota-heroes", "name": "Dota 2 英雄", "on": true, "list": ["Abaddon", "Alchemist", "Ancient Apparition", "Anti-Mage", "Arc Warden", "Axe", "Bane", "Batrider", "Beastmaster", "Bloodseeker", "Bounty Hunter", "Brewmaster", "Bristleback", "Broodmother", "Centaur Warrunner", "Chaos Knight", "Chen", "Clinkz", "Clockwerk", "Crystal Maiden", "Dark Seer", "Dark Willow", "Dawnbreaker", "Dazzle", "Death Prophet", "Disruptor", "Doom", "Dragon Knight", "Drow Ranger", "Earth Spirit", "Earthshaker", "Elder Titan", "Ember Spirit", "Enchantress", "Enigma", "Faceless Void", "Grimstroke", "Gyrocopter", "Hoodwink", "Huskar", "Invoker", "Io", "Jakiro", "Juggernaut", "Keeper of the Light", "Kez", "Kunkka", "Largo", "Legion Commander", "Leshrac", "Lich", "Lifestealer", "Lina", "Lion", "Lone Druid", "Luna", "Lycan", "Magnus", "Marci", "Mars", "Medusa", "Meepo", "Mirana", "Monkey King", "Morphling", "Muerta", "Naga Siren", "Nature's Prophet", "Necrophos", "Night Stalker", "Nyx Assassin", "Ogre Magi", "Omniknight", "Oracle", "Outworld Destroyer", "Pangolier", "Phantom Assassin", "Phantom Lancer", "Phoenix", "Primal Beast", "Puck", "Pudge", "Pugna", "Queen of Pain", "Razor", "Riki", "Ringmaster", "Rubick", "Sand King", "Shadow Demon", "Shadow Fiend", "Shadow Shaman", "Silencer", "Skywrath Mage", "Slardar", "Slark", "Snapfire", "Sniper", "Spectre", "Spirit Breaker", "Storm Spirit", "Sven", "Techies", "Templar Assassin", "Terrorblade", "Tidehunter", "Timbersaw", "Tinker", "Tiny", "Treant Protector", "Troll Warlord", "Tusk", "Underlord", "Undying", "Ursa", "Vengeful Spirit", "Venomancer", "Viper", "Visage", "Void Spirit", "Warlock", "Weaver", "Windranger", "Winter Wyvern", "Witch Doctor", "Wraith King", "Zeus"]},
-{"id": "dota-players", "name": "Dota 2 玩家", "on": false, "list": ["夹克林", "利奥", "维他命水", "男神", "奥男", "carrot (25元)", "刘培强", "火鸡", "Favilla", "铃兰花开", "suestring", "Phoebe", "小小木", "小蘑菇", "叉叉", "蛋炒饭", "脏脏", "年糕", "丽丽", "绵羊", "家明", "Boush", "小松鼠（女陪）", "McFlurry", "BabyBeauty", "Tgg"]},
+{"id": "dota-players", "name": "Dota 2 玩家", "on": false, "list": ["夹克林", "利奥", "维他命水", "男神", "奥男", "carrot (25元)", "刘培强", "火鸡", "Favilla", "小小木", "小蘑菇", "叉叉", "蛋炒饭", "脏脏", "年糕", "家明", "Boush", "小松鼠（女陪）", "Tgg", "公主", "Utena", "大扔子"]},
+{"id": "dota-players$", "name": "Dota 2 玩家（$ 标记的）", "on": false, "list": ["夹克林", "利奥", "维他命水", "男神", "奥男", "刘培强"]},
 {"id": "animals", "name": "动物", "on": false, "list": ["熊猫", "长颈鹿", "企鹅", "袋鼠", "章鱼", "蜗牛", "刺猬", "骆驼", "海豚", "鳄鱼", "孔雀", "蝙蝠", "仓鼠", "树懒", "考拉", "河马", "斑马", "猫头鹰", "火烈鸟", "变色龙", "蚂蚁", "蜜蜂", "蝴蝶", "乌龟", "鲨鱼", "狐狸", "狼", "老虎", "狮子", "大象", "兔子", "松鼠", "鹦鹉", "金鱼", "青蛙", "螃蟹", "海星", "水母", "蚊子", "恐龙", "羊驼", "浣熊", "犀牛", "猩猩", "鸵鸟", "海豹", "北极熊", "蟑螂", "萤火虫", "啄木鸟"]},
 {"id": "food", "name": "食物", "on": false, "list": ["火锅", "小笼包", "饺子", "煎饼果子", "臭豆腐", "麻辣烫", "烤鸭", "粽子", "月饼", "汤圆", "冰糖葫芦", "螺蛳粉", "肉夹馍", "披萨", "汉堡", "寿司", "薯条", "炸鸡", "冰淇淋", "巧克力", "西瓜", "榴莲", "菠萝", "柠檬", "香蕉", "草莓", "葡萄", "芒果", "椰子", "奶茶", "咖啡", "可乐", "豆浆", "油条", "包子", "方便面", "爆米花", "棉花糖", "蛋糕", "甜甜圈", "牛排", "皮蛋", "辣条", "酸奶", "鸡蛋", "年糕", "凉皮", "烤红薯", "小龙虾", "毛血旺"]},
 {"id": "items", "name": "日常物品", "on": false, "list": ["牙刷", "雨伞", "眼镜", "手机", "耳机", "钥匙", "枕头", "拖鞋", "镜子", "筷子", "剪刀", "吹风机", "冰箱", "洗衣机", "闹钟", "充电宝", "遥控器", "口罩", "钱包", "书包", "台灯", "马桶", "蜡烛", "气球", "风筝", "望远镜", "指南针", "扫把", "垃圾桶", "保温杯", "晾衣架", "指甲刀", "创可贴", "体温计", "电风扇", "空调", "沙发", "微波炉", "打火机", "胶带", "订书机", "橡皮", "键盘", "鼠标", "相机", "行李箱", "自行车", "滑板", "帐篷", "地图"]},
@@ -295,6 +300,12 @@ function wordList(cats, custom) {
 function splitList(text) {
   return text.split(/[\n,，、;；]+/).map(s => s.trim()).filter(Boolean);
 }
+// 自定义词：和 words/ 里的文件同一种写法，# 开头的行是注释，词前面的分组标记（$ @ % & ~）去掉；
+// 另外也接受逗号分隔
+function parseCustom(text) {
+  return splitList(text.split(/\r?\n/).filter(line => !line.trim().startsWith('#')).join('\n'))
+    .map(w => w.replace(/^[$@%&~]+/, '').trim()).filter(Boolean);
+}
 function encodeWords(arr) {
   let bin = '';
   new TextEncoder().encode(arr.join('\n')).forEach(b => { bin += String.fromCharCode(b); });
@@ -383,10 +394,16 @@ function renderSetup() {
           ${esc(c.name)} <span class="hint">${c.list.length}</span></label>`).join('')}
       </div>
       <details ${pf.custom && pf.custom.length ? 'open' : ''}>
-        <summary>加自定义词</summary>
-        <textarea id="custom" placeholder="每行一个，或用逗号隔开">${esc((pf.custom || []).join('\n'))}</textarea>
+        <summary>自定义词库：手动输入，或上传 txt</summary>
+        <textarea id="custom" placeholder="每行一个词，或用逗号隔开">${esc((pf.custom || []).join('\n'))}</textarea>
+        <div class="custom-tools">
+          <label class="btn btn-small filebtn">上传 txt 文件
+            <input type="file" id="upload" class="sr-only" accept=".txt,text/plain" multiple></label>
+          <span class="hint" id="customCount"></span>
+        </div>
         <label class="chip"><input type="checkbox" id="only" ${pf.only ? 'checked' : ''}> 只用自定义词</label>
-        <p class="hint">自定义词会写进链接里，词越多链接越长。想长期用的词，加进 words 文件夹里的词库文件更方便。</p>
+        <p class="hint">txt 每行一个词，# 开头的行会被忽略（和 words 文件夹里的词库同一种写法）。
+          自定义词会写进房间链接，词越多链接越长，两三百个中文词以上二维码可能就生成不了，复制链接不受影响。</p>
       </details>
     </section>
     <p class="error" id="err" role="alert"></p>
@@ -396,13 +413,45 @@ function renderSetup() {
       <p>链接里带着一个随机种子。每台设备用同一个种子和同一个局数去洗同一个词库，算出来的牌就完全一样，所以设备之间不用通信。</p>
       <p>「下一局」由每个人在自己设备上点。屏幕上的局数一样，就是同一副牌。</p>
     </details>`;
+  updateCustomCount();
+}
+
+function updateCustomCount() {
+  const ta = document.getElementById('custom'), out = document.getElementById('customCount');
+  if (!ta || !out) return;
+  const n = parseCustom(ta.value).length;
+  out.textContent = n ? `${n} 个词` : '';
+}
+// 先按 UTF-8 读；不是合法 UTF-8 的（比如 Windows 记事本存的 GBK）再按 GB18030 读
+async function readTextFile(file) {
+  const buf = await file.arrayBuffer();
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch (e) { return new TextDecoder('gb18030').decode(buf); }
+}
+async function handleUpload(input) {
+  const files = [...input.files];
+  input.value = '';                       // 允许再次选同一个文件
+  if (!files.length) return;
+  const ta = document.getElementById('custom');
+  const before = parseCustom(ta.value);
+  const added = [];
+  for (const f of files) {
+    try { added.push(...parseCustom(await readTextFile(f))); }
+    catch (e) { toast(`读不了 ${f.name}`); return; }
+  }
+  const all = [...new Set([...before, ...added])];
+  if (all.length === before.length) { toast('文件里没有读到新词'); return; }
+  ta.value = all.join('\n');
+  document.getElementById('only').checked = true;
+  updateCustomCount();
+  toast(`读入 ${all.length - before.length} 个词，已勾选「只用自定义词」`);
 }
 
 function createRoom() {
   const err = document.getElementById('err');
   const players = splitList(document.getElementById('players').value);
   const dup = players.find((p, i) => players.indexOf(p) !== i);
-  const custom = splitList(document.getElementById('custom').value);
+  const custom = parseCustom(document.getElementById('custom').value);
   const only = document.getElementById('only').checked;
   const cats = only ? [] : [...document.querySelectorAll('input[name=cat]:checked')].map(i => i.value);
   const words = wordList(cats, custom);
@@ -575,6 +624,8 @@ document.addEventListener('click', e => {
 document.getElementById('qr').addEventListener('click', e => {
   if (e.target.id === 'qr') e.target.close();   // 点遮罩关闭
 });
+document.addEventListener('input', e => { if (e.target.id === 'custom') updateCustomCount(); });
+document.addEventListener('change', e => { if (e.target.id === 'upload') handleUpload(e.target); });
 window.addEventListener('hashchange', route);
 route();
 </script>
